@@ -1,0 +1,7 @@
+toml
+torch
+selenium
+onnxruntime
+transformers
+python-dotenv
+optimum[exporters]
