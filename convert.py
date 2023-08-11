@@ -25,3 +25,8 @@ def convert_to_onnx(with_past: bool):
 
     command = f'optimum-cli export onnx --model {HF_MODEL_DIR} --task {task} {output}'
     os.system(command)
+
+
+if __name__ == '__main__':
+    convert_to_onnx(with_past=False)
+    convert_to_onnx(with_past=True)
