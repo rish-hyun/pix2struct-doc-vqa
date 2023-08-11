@@ -26,15 +26,16 @@ DATASET_NAME = config.get('DATASET_NAME')
 CHROME_DRIVER_PATH = config.get('CHROME_DRIVER_PATH')
 
 
+def __setup_chromium(quiet: bool):  # quiet: verboseness of wget and apt-get
+    latest_version = get_latest_version()
+    download_chromium(latest_version, quiet)
+    check_chromium_installation()
+    install_selenium_package(quiet)
+
+
 def download_from_rrc(save_directory: str) -> None:
 
-    if 'google.colab' in sys.modules:
-        quiet = True  # verboseness of wget and apt
-
-        latest_version = get_latest_version()
-        download_chromium(latest_version, quiet)
-        check_chromium_installation()
-        install_selenium_package(quiet)
+    __setup_chromium(quiet=True)
 
     # Set the Chrome driver options
     options = webdriver.ChromeOptions()
@@ -77,11 +78,6 @@ def download_from_rrc(save_directory: str) -> None:
     driver.quit()
 
 
-def load_from_gdrive(mount_directory: str) -> None:
-    from google.colab import drive
-    drive.mount(f'/{mount_directory}/drive')
-
-
 def extract_tarfile(file_name: str, extract_directory: str) -> None:
     os.system(f'tar -xf {file_name} -C {extract_directory}')
 
@@ -89,7 +85,7 @@ def extract_tarfile(file_name: str, extract_directory: str) -> None:
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
-        description="Download dataset from RRC or load from Google Drive. This is currently tested on Google Colab only."
+        description="Download dataset from RRC. This is currently tested on Google Colab only."
     )
 
     subparsers = parser.add_subparsers(dest="action")
@@ -97,19 +93,14 @@ if __name__ == '__main__':
     download_parser = subparsers.add_parser("download")
     download_parser.add_argument("--dir", default=os.getcwd())
 
-    load_parser = subparsers.add_parser("load")
-    load_parser.add_argument("--dir", default=os.getcwd())
-
     extract_parser = subparsers.add_parser("extract")
-    extract_parser.add_argument("--file_name", required=True)
+    extract_parser.add_argument("--file", required=True)
     extract_parser.add_argument("--dir", default=os.getcwd())
 
     args = parser.parse_args()
 
     if args.action == "download":
         download_from_rrc(args.dir)
-    elif args.action == "load":
-        load_from_gdrive(args.dir)
     elif args.action == "extract":
         extract_tarfile(args.file, args.dir)
     else:
