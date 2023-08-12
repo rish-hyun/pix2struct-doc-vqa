@@ -5,7 +5,7 @@ Convert Pix2Struct-docvqa-base Model to ONNX
 
 ## Objective:
 
-The objective of this task is to take the Pix2Struct base model from the Hugging Face library (https://huggingface.co/google/pix2struct-docvqa-base) and convert it into the ONNX format, benchmarking results, comparing the inference time and model size of the original Hugging Face model with its ONNX equivalent.
+Take the Pix2Struct base model from the Hugging Face library (https://huggingface.co/google/pix2struct-docvqa-base) and convert it into the ONNX format, benchmarking results, comparing the inference time and model size of the original Hugging Face model with its ONNX equivalent.
 
 ---
 
