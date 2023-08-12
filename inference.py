@@ -211,8 +211,7 @@ class Pix2StructOnnxWithPast:
             probs = np.exp(logits - np.max(logits, axis=-1, keepdims=True))
             probs /= np.sum(probs, axis=-1, keepdims=True)
             predicted_token = np.argmax(probs, axis=-1)
-            decoded_ids = np.concatenate(
-                (decoded_ids, predicted_token), axis=-1)
+            decoded_ids = np.concatenate((decoded_ids, predicted_token), axis=-1)
 
             decoder_inputs['input_ids'] = predicted_token
             for i in range(len(values)//2):
