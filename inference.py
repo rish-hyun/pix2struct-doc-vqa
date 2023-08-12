@@ -30,10 +30,10 @@ class Pix2StructHF:
         return Pix2StructProcessor.from_pretrained(tokenizer_path, local_files_only=True)
 
     @timeit
-    def _preprocess(self, image_path, question):
+    def _preprocess(self, image_paths: list, questions: list):
         return self.tokenizer(
-            images=Image.open(image_path),
-            text=question,
+            images=[Image.open(_path) for _path in image_paths],
+            text=questions,
             return_tensors="pt"
         )
 
@@ -70,11 +70,11 @@ class Pix2StructOnnxWithoutPast:
         return Pix2StructProcessor.from_pretrained(tokenizer_path, local_files_only=True)
 
     @timeit
-    def _preprocess(self, image_path, question):
+    def _preprocess(self, image_paths: list, questions: list):
         inputs = self.tokenizer(
-            images=Image.open(image_path),
-            text=question,
-            return_tensors="np"
+            images=[Image.open(_path) for _path in image_paths],
+            text=questions,
+            return_tensors="pt"
         )
         inputs.update({
             'flattened_patches': inputs['flattened_patches'].astype(np.float32),
@@ -143,11 +143,11 @@ class Pix2StructOnnxWithPast:
         return Pix2StructProcessor.from_pretrained(tokenizer_path, local_files_only=True)
 
     @timeit
-    def _preprocess(self, image_path, question):
+    def _preprocess(self, image_paths: list, questions: list):
         inputs = self.tokenizer(
-            images=Image.open(image_path),
-            text=question,
-            return_tensors="np"
+            images=[Image.open(_path) for _path in image_paths],
+            text=questions,
+            return_tensors="pt"
         )
         inputs.update({
             'flattened_patches': inputs['flattened_patches'].astype(np.float32),
@@ -204,14 +204,15 @@ class Pix2StructOnnxWithPast:
                 f'past_key_values.{i}.encoder.value': values[4*i+3],
             })
 
-        while predicted_token[:, -1] != 1:  # Regressive Generation!
+        while (predicted_token[:, -1] != 1).any():  # Regressive Generation!
 
             logits, *values = self.decoder_with_past.run(None, decoder_inputs)
 
             probs = np.exp(logits - np.max(logits, axis=-1, keepdims=True))
             probs /= np.sum(probs, axis=-1, keepdims=True)
             predicted_token = np.argmax(probs, axis=-1)
-            decoded_ids = np.concatenate((decoded_ids, predicted_token), axis=-1)
+            decoded_ids = np.concatenate(
+                (decoded_ids, predicted_token), axis=-1)
 
             decoder_inputs['input_ids'] = predicted_token
             for i in range(len(values)//2):
