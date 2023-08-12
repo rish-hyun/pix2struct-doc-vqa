@@ -3,8 +3,9 @@ from collections import defaultdict
 
 
 class TimeContextManager:
-    def __init__(self):
+    def __init__(self, verbose: bool = True) -> None:
         self.manager = defaultdict(list)
+        self.verbose = verbose
 
     def __call__(self, context):
         self.context = context
@@ -17,7 +18,9 @@ class TimeContextManager:
             end_time = time.perf_counter()
             elapsed_time = end_time - start_time
 
-            print(f">>> | {self.context} : {round(elapsed_time, 3)} secs | <<<")
+            if self.verbose:
+                print(f">>> | {self.context} : {round(elapsed_time, 3)} secs | <<<")
+
             self.manager[self.context].append(
                 {
                     "start_time": start_time,

@@ -1,0 +1,170 @@
+{
+    "HF_MODEL": {
+        "model_init_time": [
+            {
+                "start_time": 1523.146590158,
+                "end_time": 1542.353829971,
+                "elapsed_time": 19.207239813000115
+            },
+            {
+                "start_time": 1582.345525485,
+                "end_time": 1586.81346381,
+                "elapsed_time": 4.467938324999977
+            },
+            {
+                "start_time": 1619.550294301,
+                "end_time": 1622.714522914,
+                "elapsed_time": 3.164228613000205
+            },
+            {
+                "start_time": 1653.210191073,
+                "end_time": 1656.104134645,
+                "elapsed_time": 2.8939435719998983
+            },
+            {
+                "start_time": 1686.029614576,
+                "end_time": 1688.874333789,
+                "elapsed_time": 2.844719212999962
+            }
+        ],
+        "model_run_time": [
+            {
+                "start_time": 1542.35386697,
+                "end_time": 1582.345506109,
+                "elapsed_time": 39.9916391390002
+            },
+            {
+                "start_time": 1586.886400066,
+                "end_time": 1619.550271274,
+                "elapsed_time": 32.66387120799982
+            },
+            {
+                "start_time": 1622.762877832,
+                "end_time": 1653.210172263,
+                "elapsed_time": 30.447294431000046
+            },
+            {
+                "start_time": 1656.153334243,
+                "end_time": 1686.029594004,
+                "elapsed_time": 29.87625976100003
+            },
+            {
+                "start_time": 1688.916170014,
+                "end_time": 1718.621150787,
+                "elapsed_time": 29.70498077299999
+            }
+        ]
+    },
+    "ONNX_MODEL": {
+        "model_init_time": [
+            {
+                "start_time": 1718.621268248,
+                "end_time": 1731.24440649,
+                "elapsed_time": 12.623138242000095
+            },
+            {
+                "start_time": 1761.168198114,
+                "end_time": 1764.787686846,
+                "elapsed_time": 3.619488732000036
+            },
+            {
+                "start_time": 1793.545826379,
+                "end_time": 1795.691900955,
+                "elapsed_time": 2.1460745760000464
+            },
+            {
+                "start_time": 1832.333447193,
+                "end_time": 1834.706020011,
+                "elapsed_time": 2.3725728179999805
+            },
+            {
+                "start_time": 1863.955500525,
+                "end_time": 1866.46100626,
+                "elapsed_time": 2.5055057350000425
+            }
+        ],
+        "model_run_time": [
+            {
+                "start_time": 1731.292416321,
+                "end_time": 1761.16816791,
+                "elapsed_time": 29.875751588999947
+            },
+            {
+                "start_time": 1764.987985378,
+                "end_time": 1793.545805773,
+                "elapsed_time": 28.557820394999908
+            },
+            {
+                "start_time": 1795.824330472,
+                "end_time": 1832.333407856,
+                "elapsed_time": 36.509077383999966
+            },
+            {
+                "start_time": 1834.866046605,
+                "end_time": 1863.955466657,
+                "elapsed_time": 29.089420051999923
+            },
+            {
+                "start_time": 1866.573333516,
+                "end_time": 1894.948977229,
+                "elapsed_time": 28.375643713000045
+            }
+        ]
+    },
+    "ONNX_MODEL_WITH_PAST": {
+        "model_init_time": [
+            {
+                "start_time": 1894.949120513,
+                "end_time": 1909.235273205,
+                "elapsed_time": 14.286152692000087
+            },
+            {
+                "start_time": 1927.007095627,
+                "end_time": 1936.704555637,
+                "elapsed_time": 9.697460010000214
+            },
+            {
+                "start_time": 1954.487074702,
+                "end_time": 1963.646483016,
+                "elapsed_time": 9.159408314000075
+            },
+            {
+                "start_time": 1983.830355437,
+                "end_time": 1988.143233628,
+                "elapsed_time": 4.312878190999982
+            },
+            {
+                "start_time": 2006.215074306,
+                "end_time": 2010.00555175,
+                "elapsed_time": 3.7904774440000892
+            }
+        ],
+        "model_run_time": [
+            {
+                "start_time": 1909.441403172,
+                "end_time": 1927.007072435,
+                "elapsed_time": 17.565669263000018
+            },
+            {
+                "start_time": 1936.869401178,
+                "end_time": 1954.487056565,
+                "elapsed_time": 17.617655387000013
+            },
+            {
+                "start_time": 1963.817536665,
+                "end_time": 1983.830332658,
+                "elapsed_time": 20.012795993000054
+            },
+            {
+                "start_time": 1988.316805321,
+                "end_time": 2006.215055578,
+                "elapsed_time": 17.898250256999972
+            },
+            {
+                "start_time": 2010.305936619,
+                "end_time": 2031.058989245,
+                "elapsed_time": 20.753052626
+            }
+        ]
+    }
+}
