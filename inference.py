@@ -1,10 +1,19 @@
+import os
 import time
+import toml
+import argparse
 import functools
 import numpy as np
 
 from PIL import Image
 from onnxruntime import InferenceSession
 from transformers import Pix2StructForConditionalGeneration, Pix2StructProcessor
+
+
+config = toml.load('config.toml')['MODEL']
+
+MODEL_NAME = config['MODEL_NAME']
+MODELS_DIR = config['MODELS_DIR']
 
 
 def timeit(func):
@@ -21,7 +30,12 @@ def timeit(func):
 
 class Pix2StructHF:
 
-    def __init__(self, model_path, tokenizer_path):
+    def __init__(
+        self,
+        model_path: str = os.path.join(MODELS_DIR, MODEL_NAME),
+        tokenizer_path: str = os.path.join(MODELS_DIR, MODEL_NAME),
+    ) -> None:
+
         self.tokenizer = self._load_tokenizer(tokenizer_path)
         self.model = self._load_model(model_path)
 
@@ -50,17 +64,22 @@ class Pix2StructHF:
         self.model.eval()
         return self.model.generate(**inputs)
 
-    def run(self, image_path, question):
-        inputs = self._preprocess(image_path, question)
+    def run(self, image_paths, questions):
+        inputs = self._preprocess(image_paths, questions)
         outputs = self._generate(inputs)
         return self._postprocess(outputs)
 
 
 class Pix2StructOnnxWithoutPast:
 
-    def __init__(self, model_path, tokenizer_path, providers=['CPUExecutionProvider']):
-        self.providers = providers
+    def __init__(
+        self,
+        model_path=os.path.join(MODELS_DIR, MODEL_NAME) + '_onnx',
+        tokenizer_path=os.path.join(MODELS_DIR, MODEL_NAME) + '_onnx',
+        providers=['CPUExecutionProvider']
+    ) -> None:
 
+        self.providers = providers
         self.tokenizer = self._load_tokenizer(tokenizer_path)
         self.encoder = self._load_encoder(model_path)
         self.decoder = self._load_decoder(model_path)
@@ -74,12 +93,9 @@ class Pix2StructOnnxWithoutPast:
         inputs = self.tokenizer(
             images=[Image.open(_path) for _path in image_paths],
             text=questions,
-            return_tensors="pt"
+            return_tensors="np"
         )
-        inputs.update({
-            'flattened_patches': inputs['flattened_patches'].astype(np.float32),
-            'attention_mask': inputs['attention_mask'].astype(np.int64)
-        })
+        inputs['attention_mask'] = inputs['attention_mask'].astype(np.int64)
         return inputs
 
     @timeit
@@ -122,17 +138,23 @@ class Pix2StructOnnxWithoutPast:
 
         return input_ids
 
-    def run(self, image_path, question):
-        inputs = self._preprocess(image_path, question)
+    def run(self, image_paths, questions):
+        inputs = self._preprocess(image_paths, questions)
         outputs = self._generate(inputs)
         return self._postprocess(outputs)
 
 
 class Pix2StructOnnxWithPast:
 
-    def __init__(self, model_path, tokenizer_path, providers=['CPUExecutionProvider']):
-        self.providers = providers
+    def __init__(
+        self,
+        model_path=os.path.join(MODELS_DIR, MODEL_NAME) + '_onnx_with_past',
+        tokenizer_path=os.path.join(
+            MODELS_DIR, MODEL_NAME) + '_onnx_with_past',
+        providers=['CPUExecutionProvider']
+    ) -> None:
 
+        self.providers = providers
         self.tokenizer = self._load_tokenizer(tokenizer_path)
         self.encoder = self._load_encoder(model_path)
         self.decoder = self._load_decoder(model_path)
@@ -147,12 +169,9 @@ class Pix2StructOnnxWithPast:
         inputs = self.tokenizer(
             images=[Image.open(_path) for _path in image_paths],
             text=questions,
-            return_tensors="pt"
+            return_tensors="np"
         )
-        inputs.update({
-            'flattened_patches': inputs['flattened_patches'].astype(np.float32),
-            'attention_mask': inputs['attention_mask'].astype(np.int64)
-        })
+        inputs['attention_mask'] = inputs['attention_mask'].astype(np.int64)
         return inputs
 
     @timeit
@@ -222,7 +241,49 @@ class Pix2StructOnnxWithPast:
 
         return decoded_ids
 
-    def run(self, image_path, question):
-        inputs = self._preprocess(image_path, question)
+    def run(self, image_paths, questions):
+        inputs = self._preprocess(image_paths, questions)
         outputs = self._generate(inputs)
         return self._postprocess(outputs)
+
+
+if __name__ == '__main__':
+
+    available_models = {
+        'HF_MODEL': Pix2StructHF,
+        'ONNX_MODEL': Pix2StructOnnxWithoutPast,
+        'ONNX_MODEL_WITH_PAST': Pix2StructOnnxWithPast,
+    }
+
+    parser = argparse.ArgumentParser(
+        description="Run Pix2Struct Inference"
+    )
+
+    parser.add_argument(
+        "--model", "-m",
+        help="Path to the model folder",
+        required=True,
+        choices=available_models
+    )
+
+    parser.add_argument(
+        "--images", "-i",
+        help="Path to the images",
+        required=True,
+        nargs='+'
+    )
+
+    parser.add_argument(
+        "--questions", "-q",
+        help="Questions",
+        required=True,
+        nargs='+'
+    )
+
+    args = parser.parse_args()
+    model = available_models.get(args.model)()
+    answers = model.run(args.images, args.questions)
+
+    print('<==============OUTPUT==============>')
+    for q, a in zip(args.questions, answers):
+        print(f'{q} -> {a}')

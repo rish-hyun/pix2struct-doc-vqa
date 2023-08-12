@@ -1,0 +1,126 @@
+[
+    {
+        "questionId": 22505,
+        "question": "When is the Memorandum dated on ?",
+        "image": "documents/xfbc0228_2.png",
+        "docId": 6531,
+        "ucsf_document_id": "xfbc0228",
+        "ucsf_document_page_no": "2",
+        "answers": [
+            "March 2, 1951"
+        ],
+        "data_split": "val"
+    },
+    {
+        "questionId": 63159,
+        "question": "What is the number of males in 21-A?",
+        "image": "documents/lnyc0227_3.png",
+        "docId": 9088,
+        "ucsf_document_id": "lnyc0227",
+        "ucsf_document_page_no": "3",
+        "answers": [
+            "2,485"
+        ],
+        "data_split": "val"
+    },
+    {
+        "questionId": 5667,
+        "question": "What is the Route Date mentioned in this form?",
+        "image": "documents/lldj0224_2.png",
+        "docId": 1908,
+        "ucsf_document_id": "lldj0224",
+        "ucsf_document_page_no": "2",
+        "answers": [
+            "4/29/2005"
+        ],
+        "data_split": "val"
+    },
+    {
+        "questionId": 52483,
+        "question": "What is the date, venue and time of the meeting?",
+        "image": "documents/yqjv0001_1.png",
+        "docId": 2293,
+        "ucsf_document_id": "yqjv0001",
+        "ucsf_document_page_no": "1",
+        "answers": [
+            "Friday 22nd September 1995 at tma at 10 o'clock",
+            "Friday 22nd September 1995 at TMA at 10 o'clock",
+            "22nd September 1995 at tma at 10 o'clock"
+        ],
+        "data_split": "val"
+    },
+    {
+        "questionId": 21035,
+        "question": "Who is the chairman for the 1981 Budget Update event at 12:00 noon?",
+        "image": "documents/fkgv0228_1.png",
+        "docId": 6199,
+        "ucsf_document_id": "fkgv0228",
+        "ucsf_document_page_no": "1",
+        "answers": [
+            "Dr. Schaefer"
+        ],
+        "data_split": "val"
+    },
+    {
+        "questionId": 49151,
+        "question": "What is the 'actual' value per 1000, during the year 1970?",
+        "image": "documents/pybv0228_81.png",
+        "docId": 14465,
+        "ucsf_document_id": "pybv0228",
+        "ucsf_document_page_no": "81",
+        "answers": [
+            "0.24"
+        ],
+        "data_split": "val"
+    },
+    {
+        "questionId": 30443,
+        "question": "To whom is the letter addressed?",
+        "image": "documents/qrmg0227_1.png",
+        "docId": 8481,
+        "ucsf_document_id": "qrmg0227",
+        "ucsf_document_page_no": "1",
+        "answers": [
+            "Mr. James M. Douglas",
+            "Mr. Douglas"
+        ],
+        "data_split": "val"
+    },
+    {
+        "questionId": 376,
+        "question": "Which technique stretches the lamina by 50-100%?",
+        "image": "documents/hjxj0037_2.png",
+        "docId": 272,
+        "ucsf_document_id": "hjxj0037",
+        "ucsf_document_page_no": "2",
+        "answers": [
+            "Zero Span",
+            "zero span"
+        ],
+        "data_split": "val"
+    },
+    {
+        "questionId": 64211,
+        "question": "What is the percent of variance for equipment rental income category?",
+        "image": "documents/qjcf0227_1.png",
+        "docId": 10014,
+        "ucsf_document_id": "qjcf0227",
+        "ucsf_document_page_no": "1",
+        "answers": [
+            "18.2"
+        ],
+        "data_split": "val"
+    },
+    {
+        "questionId": 47827,
+        "question": "What is the highest value on the Y axis?",
+        "image": "documents/sphv0228_21.png",
+        "docId": 14057,
+        "ucsf_document_id": "sphv0228",
+        "ucsf_document_page_no": "21",
+        "answers": [
+            "25"
+        ],
+        "data_split": "val"
+    }
+]

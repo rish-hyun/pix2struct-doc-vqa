@@ -1,5 +1,4 @@
 import os
-import sys
 import toml
 import argparse
 from time import sleep
