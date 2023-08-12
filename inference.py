@@ -1,32 +1,19 @@
 import os
-import time
 import toml
 import argparse
-import functools
 import numpy as np
 
 from PIL import Image
 from onnxruntime import InferenceSession
 from transformers import Pix2StructForConditionalGeneration, Pix2StructProcessor
 
+from utils.time import TimeContextManager
+
 
 config = toml.load("config.toml")["MODEL"]
 
 MODEL_NAME = config["MODEL_NAME"]
 MODELS_DIR = config["MODELS_DIR"]
-
-
-def timeit(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        start_time = time.perf_counter()
-        value = func(*args, **kwargs)
-        end_time = time.perf_counter()
-        run_time = end_time - start_time
-        print(f">>> | {repr(func.__name__)} : {round(run_time, 3)} secs | <<<")
-        return value
-
-    return wrapper
 
 
 class Pix2StructHF:
@@ -38,13 +25,11 @@ class Pix2StructHF:
         self.tokenizer = self._load_tokenizer(tokenizer_path)
         self.model = self._load_model(model_path)
 
-    @timeit
     def _load_tokenizer(self, tokenizer_path):
         return Pix2StructProcessor.from_pretrained(
             tokenizer_path, local_files_only=True
         )
 
-    @timeit
     def _preprocess(self, image_paths: list, questions: list):
         return self.tokenizer(
             images=[Image.open(_path) for _path in image_paths],
@@ -52,17 +37,14 @@ class Pix2StructHF:
             return_tensors="pt",
         )
 
-    @timeit
     def _postprocess(self, outputs):
         return self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
 
-    @timeit
     def _load_model(self, model_path):
         return Pix2StructForConditionalGeneration.from_pretrained(
             model_path, local_files_only=True
         )
 
-    @timeit
     def _generate(self, inputs):
         self.model.eval()
         return self.model.generate(**inputs)
@@ -82,16 +64,16 @@ class Pix2StructOnnxWithoutPast:
     ) -> None:
         self.providers = providers
         self.tokenizer = self._load_tokenizer(tokenizer_path)
-        self.encoder = self._load_encoder(model_path)
-        self.decoder = self._load_decoder(model_path)
 
-    @timeit
+        _models = self._load_model(model_path)
+        self.encoder = _models.pop("encoder")
+        self.decoder = _models.pop("decoder")
+
     def _load_tokenizer(self, tokenizer_path):
         return Pix2StructProcessor.from_pretrained(
             tokenizer_path, local_files_only=True
         )
 
-    @timeit
     def _preprocess(self, image_paths: list, questions: list):
         inputs = self.tokenizer(
             images=[Image.open(_path) for _path in image_paths],
@@ -101,23 +83,25 @@ class Pix2StructOnnxWithoutPast:
         inputs["attention_mask"] = inputs["attention_mask"].astype(np.int64)
         return inputs
 
-    @timeit
     def _postprocess(self, outputs):
         return self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
 
-    @timeit
     def _load_encoder(self, model_path):
         return InferenceSession(
             f"{model_path}/encoder_model.onnx", providers=self.providers
         )
 
-    @timeit
     def _load_decoder(self, model_path):
         return InferenceSession(
             f"{model_path}/decoder_model.onnx", providers=self.providers
         )
 
-    @timeit
+    def _load_model(self, model_path):
+        return {
+            "encoder": self._load_encoder(model_path),
+            "decoder": self._load_decoder(model_path),
+        }
+
     def _generate(self, inputs):
         last_hidden_state = self.encoder.run(
             ["last_hidden_state"],
@@ -165,17 +149,17 @@ class Pix2StructOnnxWithPast:
     ) -> None:
         self.providers = providers
         self.tokenizer = self._load_tokenizer(tokenizer_path)
-        self.encoder = self._load_encoder(model_path)
-        self.decoder = self._load_decoder(model_path)
-        self.decoder_with_past = self._load_decoder_with_past(model_path)
 
-    @timeit
+        _models = self._load_model(model_path)
+        self.encoder = _models.pop("encoder")
+        self.decoder = _models.pop("decoder")
+        self.decoder_with_past = _models.pop("decoder_with_past")
+
     def _load_tokenizer(self, tokenizer_path):
         return Pix2StructProcessor.from_pretrained(
             tokenizer_path, local_files_only=True
         )
 
-    @timeit
     def _preprocess(self, image_paths: list, questions: list):
         inputs = self.tokenizer(
             images=[Image.open(_path) for _path in image_paths],
@@ -185,29 +169,31 @@ class Pix2StructOnnxWithPast:
         inputs["attention_mask"] = inputs["attention_mask"].astype(np.int64)
         return inputs
 
-    @timeit
     def _postprocess(self, outputs):
         return self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
 
-    @timeit
     def _load_encoder(self, model_path):
         return InferenceSession(
             f"{model_path}/encoder_model.onnx", providers=self.providers
         )
 
-    @timeit
     def _load_decoder(self, model_path):
         return InferenceSession(
             f"{model_path}/decoder_model.onnx", providers=self.providers
         )
 
-    @timeit
     def _load_decoder_with_past(self, model_path):
         return InferenceSession(
             f"{model_path}/decoder_with_past_model.onnx", providers=self.providers
         )
 
-    @timeit
+    def _load_model(self, model_path):
+        return {
+            "encoder": self._load_encoder(model_path),
+            "decoder": self._load_decoder(model_path),
+            "decoder_with_past": self._load_decoder_with_past(model_path),
+        }
+
     def _generate(self, inputs):
         last_hidden_state = self.encoder.run(
             ["last_hidden_state"],
@@ -295,8 +281,10 @@ if __name__ == "__main__":
     parser.add_argument("--questions", "-q", help="Questions", required=True, nargs="+")
 
     args = parser.parse_args()
-    model = available_models.get(args.model)()
-    answers = model.run(args.images, args.questions)
+
+    tcm = TimeContextManager()
+    model = tcm("model_init_time").measure(available_models.get(args.model))()
+    answers = tcm("model_run_time").measure(model.run)(args.images, args.questions)
 
     print("<==============OUTPUT==============>")
     for q, a in zip(args.questions, answers):
