@@ -76,9 +76,10 @@ class Pix2StructOnnxWithoutPast:
             text=question,
             return_tensors="np"
         )
-
-        inputs['flattened_patches'] = inputs['flattened_patches'].astype(np.float32)
-        inputs['attention_mask'] = inputs['attention_mask'].astype(np.int64)
+        inputs.update({
+            'flattened_patches': inputs['flattened_patches'].astype(np.float32),
+            'attention_mask': inputs['attention_mask'].astype(np.int64)
+        })
         return inputs
 
     @timeit
@@ -148,9 +149,10 @@ class Pix2StructOnnxWithPast:
             text=question,
             return_tensors="np"
         )
-
-        inputs['flattened_patches'] = inputs['flattened_patches'].astype(np.float32)
-        inputs['attention_mask'] = inputs['attention_mask'].astype(np.int64)
+        inputs.update({
+            'flattened_patches': inputs['flattened_patches'].astype(np.float32),
+            'attention_mask': inputs['attention_mask'].astype(np.int64)
+        })
         return inputs
 
     @timeit
