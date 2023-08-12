@@ -9,7 +9,7 @@ deb_files_startstwith = [
     "chromium-codecs-ffmpeg-extra_",
     "chromium-codecs-ffmpeg_",
     "chromium-browser_",
-    "chromium-chromedriver_"
+    "chromium-chromedriver_",
 ]
 
 
@@ -70,6 +70,6 @@ def check_chromium_installation():
 
 def install_selenium_package(quiet: bool):
     if quiet:
-        os.system('pip install selenium - qq >> pip.log')
+        os.system("pip install selenium - qq >> pip.log")
     else:
-        os.system('pip install selenium')
+        os.system("pip install selenium")

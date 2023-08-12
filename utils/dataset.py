@@ -13,16 +13,16 @@ from chromium import (
     get_latest_version,
     download_chromium,
     check_chromium_installation,
-    install_selenium_package
+    install_selenium_package,
 )
 
 
-config = toml.load('config.toml')['DATASET']
+config = toml.load("config.toml")["DATASET"]
 
-EMAIL = config.get('EMAIL')
-PASSWORD = config.get('PASSWORD')
-DATASET_NAME = config.get('DATASET_NAME')
-CHROME_DRIVER_PATH = config.get('CHROME_DRIVER_PATH')
+EMAIL = config.get("EMAIL")
+PASSWORD = config.get("PASSWORD")
+DATASET_NAME = config.get("DATASET_NAME")
+CHROME_DRIVER_PATH = config.get("CHROME_DRIVER_PATH")
 
 
 def __setup_chromium(quiet: bool):  # quiet: verboseness of wget and apt-get
@@ -33,56 +33,54 @@ def __setup_chromium(quiet: bool):  # quiet: verboseness of wget and apt-get
 
 
 def download_from_rrc(save_directory: str) -> None:
-
     __setup_chromium(quiet=True)
 
     # Set the Chrome driver options
     options = webdriver.ChromeOptions()
-    options.add_argument('--headless')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
 
     prefs = {"download.default_directory": save_directory}
     options.add_experimental_option("prefs", prefs)
 
     # Start the Chrome driver
     driver = webdriver.Chrome(
-        service=Service(executable_path=CHROME_DRIVER_PATH),
-        options=options
+        service=Service(executable_path=CHROME_DRIVER_PATH), options=options
     )
 
-    driver.get('https://rrc.cvc.uab.es/?com=contestant')
+    driver.get("https://rrc.cvc.uab.es/?com=contestant")
 
-    driver.find_element(by=By.ID, value='input_email').send_keys(EMAIL)
-    driver.find_element(by=By.ID, value='input_password').send_keys(PASSWORD)
-    driver.find_element(by=By.CLASS_NAME, value='btn-primary').click()
+    driver.find_element(by=By.ID, value="input_email").send_keys(EMAIL)
+    driver.find_element(by=By.ID, value="input_password").send_keys(PASSWORD)
+    driver.find_element(by=By.CLASS_NAME, value="btn-primary").click()
 
     locator = (By.CLASS_NAME, "bs-callout")
     WebDriverWait(driver, 3).until(EC.presence_of_element_located(locator))
 
-    driver.get('https://rrc.cvc.uab.es/?ch=17&com=downloads')
+    driver.get("https://rrc.cvc.uab.es/?ch=17&com=downloads")
 
     link = driver.find_element(
-        by=By.XPATH,
-        value=f"//*[contains(text(), '{DATASET_NAME}:')]/a"
+        by=By.XPATH, value=f"//*[contains(text(), '{DATASET_NAME}:')]/a"
     )
     link.click()
 
     sleep(3)
 
     # Quit the driver if file downloaded
-    while any(filename.endswith('.crdownload') for filename in os.listdir(save_directory)):
+    while any(
+        filename.endswith(".crdownload") for filename in os.listdir(save_directory)
+    ):
         sleep(1)
 
     driver.quit()
 
 
 def extract_tarfile(file_name: str, extract_directory: str) -> None:
-    os.system(f'tar -xf {file_name} -C {extract_directory}')
+    os.system(f"tar -xf {file_name} -C {extract_directory}")
 
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Download dataset from RRC. This is currently tested on Google Colab only."
     )
