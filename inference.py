@@ -1,10 +1,7 @@
 import time
 import functools
-from abc import ABC, abstractmethod
 
 from PIL import Image
-
-import torch
 from transformers import Pix2StructForConditionalGeneration, Pix2StructProcessor
 
 
@@ -20,51 +17,22 @@ def timeit(func):
     return wrapper
 
 
-class Inference(ABC):
-
-    @timeit
-    @abstractmethod
-    def _load_model(self, model_path):
-        pass
-
-    @timeit
-    @abstractmethod
-    def _load_tokenizer(self, tokenizer_path):
-        pass
-
-    @timeit
-    @abstractmethod
-    def _preprocess(self, image_path, question):
-        pass
-
-    @timeit
-    @abstractmethod
-    def _postprocess(self, outputs):
-        pass
-
-    @timeit
-    @abstractmethod
-    def _generate(self, inputs):
-        pass
-
-    @abstractmethod
-    def run(self, image_path, question):
-        pass
-
-
-class Pix2StructHF(Inference):
+class Pix2StructHF:
 
     def __init__(self, model_path, tokenizer_path, device="cpu"):
+        self.device = device
         self.model = self._load_model(model_path)
         self.tokenizer = self._load_tokenizer(tokenizer_path)
-        self.device = device
 
+    @timeit
     def _load_model(self, model_path):
         return Pix2StructForConditionalGeneration.from_pretrained(model_path, local_files_only=True).to(self.device)
 
+    @timeit
     def _load_tokenizer(self, tokenizer_path):
         return Pix2StructProcessor.from_pretrained(tokenizer_path, local_files_only=True)
 
+    @timeit
     def _preprocess(self, image_path, question):
         return self.tokenizer(
             images=Image.open(image_path),
@@ -72,9 +40,11 @@ class Pix2StructHF(Inference):
             return_tensors="pt"
         ).to(self.device)
 
+    @timeit
     def _postprocess(self, outputs):
         return self.tokenizer.decode(outputs, skip_special_tokens=True)
 
+    @timeit
     def _generate(self, inputs):
         self.model.eval()
         return self.model.generate(**inputs)
@@ -86,9 +56,9 @@ class Pix2StructHF(Inference):
         return self._postprocess(outputs)
 
 
-class Pix2StructOnnxWithoutPast(Inference):
+class Pix2StructOnnxWithoutPast:
     ...
 
 
-class Pix2StructOnnxWithPast(Inference):
+class Pix2StructOnnxWithPast:
     ...
