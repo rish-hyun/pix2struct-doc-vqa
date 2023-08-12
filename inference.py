@@ -288,4 +288,4 @@ if __name__ == "__main__":
 
     print("<==============OUTPUT==============>")
     for q, a in zip(args.questions, answers):
-        print(f"{q} -> {a}")
+        print(f"Question: {q} \nAnswer: {a} \n")
