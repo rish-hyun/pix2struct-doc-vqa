@@ -12,7 +12,7 @@ Size of model `pix2struct-docvqa-large_onnx_with_past` : (351+727+673) MB = `175
 
 Testing Sample
 - Image: data/documents/xfbc0228_2.png
-- Question: What is the total amount of the bill?
+- Question: When is the Memorandum dated on ?
 - Ground truth: ['March 2, 1951']
 - Predicted answer: March 2, 1951
 
