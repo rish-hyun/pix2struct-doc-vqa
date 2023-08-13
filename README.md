@@ -4,6 +4,14 @@
 
 Following have been tested on Google Colab
 
+- Create `config.toml` file with following content
+    ```toml
+    [MODEL]
+    ORGANIZATION = "google"
+    MODEL_NAME = "pix2struct-docvqa-base"
+    MODELS_DIR = "models"
+    ```
+
 - Install the requirements (Better to run in a virtual environment!)
     ```bash
     pip install -r requirements.txt
