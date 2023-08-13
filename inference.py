@@ -16,29 +16,34 @@ MODEL_NAME = config["MODEL_NAME"]
 MODELS_DIR = config["MODELS_DIR"]
 
 
+class Processor:
+    def __init__(self, processor_path: str) -> None:
+        self.processor = self._load_processor(processor_path)
+
+    def _load_processor(self, processor_path):
+        return Pix2StructProcessor.from_pretrained(
+            processor_path, local_files_only=True
+        )
+
+    def __call__(self, image_paths: list, questions: list, return_tensors: str):
+        return self.processor(
+            images=[Image.open(_path) for _path in image_paths],
+            text=questions,
+            return_tensors=return_tensors,
+        )
+
+    def decode(self, outputs):
+        return self.processor.batch_decode(outputs, skip_special_tokens=True)
+
+
 class Pix2StructHF:
     def __init__(
         self,
         model_path: str = os.path.join(MODELS_DIR, MODEL_NAME),
-        tokenizer_path: str = os.path.join(MODELS_DIR, MODEL_NAME),
+        processor_path: str = os.path.join(MODELS_DIR, MODEL_NAME),
     ) -> None:
-        self.tokenizer = self._load_tokenizer(tokenizer_path)
+        self.processor = Processor(processor_path)
         self.model = self._load_model(model_path)
-
-    def _load_tokenizer(self, tokenizer_path):
-        return Pix2StructProcessor.from_pretrained(
-            tokenizer_path, local_files_only=True
-        )
-
-    def _preprocess(self, image_paths: list, questions: list):
-        return self.tokenizer(
-            images=[Image.open(_path) for _path in image_paths],
-            text=questions,
-            return_tensors="pt",
-        )
-
-    def _postprocess(self, outputs):
-        return self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
 
     def _load_model(self, model_path):
         return Pix2StructForConditionalGeneration.from_pretrained(
@@ -50,56 +55,44 @@ class Pix2StructHF:
         return self.model.generate(**inputs)
 
     def run(self, image_paths, questions):
-        inputs = self._preprocess(image_paths, questions)
+        inputs = self.processor(
+            image_paths=image_paths, questions=questions, return_tensors="pt"
+        )
         outputs = self._generate(inputs)
-        return self._postprocess(outputs)
+        return self.processor.decode(outputs)
 
 
 class Pix2StructOnnxWithoutPast:
     def __init__(
         self,
         model_path=os.path.join(MODELS_DIR, MODEL_NAME) + "_onnx",
-        tokenizer_path=os.path.join(MODELS_DIR, MODEL_NAME) + "_onnx",
+        processor_path=os.path.join(MODELS_DIR, MODEL_NAME) + "_onnx",
+        quantize: bool = False,
         providers=["CPUExecutionProvider"],
     ) -> None:
         self.providers = providers
-        self.tokenizer = self._load_tokenizer(tokenizer_path)
+        self.processor = Processor(processor_path)
 
-        _models = self._load_model(model_path)
+        _models = self._load_model(model_path, quantize)
         self.encoder = _models.pop("encoder")
         self.decoder = _models.pop("decoder")
 
-    def _load_tokenizer(self, tokenizer_path):
-        return Pix2StructProcessor.from_pretrained(
-            tokenizer_path, local_files_only=True
-        )
+    def _load_encoder(self, model_path: str, quantize: bool):
+        _path = f"{model_path}/encoder_model.onnx"
+        if quantize:
+            _path = _path.replace(".onnx", "_quantized.onnx")
+        return InferenceSession(_path, providers=self.providers)
 
-    def _preprocess(self, image_paths: list, questions: list):
-        inputs = self.tokenizer(
-            images=[Image.open(_path) for _path in image_paths],
-            text=questions,
-            return_tensors="np",
-        )
-        inputs["attention_mask"] = inputs["attention_mask"].astype(np.int64)
-        return inputs
+    def _load_decoder(self, model_path: str, quantize: bool):
+        _path = f"{model_path}/decoder_model.onnx"
+        if quantize:
+            _path = _path.replace(".onnx", "_quantized.onnx")
+        return InferenceSession(_path, providers=self.providers)
 
-    def _postprocess(self, outputs):
-        return self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
-
-    def _load_encoder(self, model_path):
-        return InferenceSession(
-            f"{model_path}/encoder_model.onnx", providers=self.providers
-        )
-
-    def _load_decoder(self, model_path):
-        return InferenceSession(
-            f"{model_path}/decoder_model.onnx", providers=self.providers
-        )
-
-    def _load_model(self, model_path):
+    def _load_model(self, model_path: str, quantize: bool):
         return {
-            "encoder": self._load_encoder(model_path),
-            "decoder": self._load_decoder(model_path),
+            "encoder": self._load_encoder(model_path, quantize),
+            "decoder": self._load_decoder(model_path, quantize),
         }
 
     def _generate(self, inputs):
@@ -135,63 +128,54 @@ class Pix2StructOnnxWithoutPast:
         return input_ids
 
     def run(self, image_paths, questions):
-        inputs = self._preprocess(image_paths, questions)
+        inputs = self.processor(
+            image_paths=image_paths, questions=questions, return_tensors="np"
+        )
+        inputs["attention_mask"] = inputs["attention_mask"].astype(np.int64)
+
         outputs = self._generate(inputs)
-        return self._postprocess(outputs)
+        return self.processor.decode(outputs)
 
 
 class Pix2StructOnnxWithPast:
     def __init__(
         self,
         model_path=os.path.join(MODELS_DIR, MODEL_NAME) + "_onnx_with_past",
-        tokenizer_path=os.path.join(MODELS_DIR, MODEL_NAME) + "_onnx_with_past",
+        processor_path=os.path.join(MODELS_DIR, MODEL_NAME) + "_onnx_with_past",
+        quantize: bool = False,
         providers=["CPUExecutionProvider"],
     ) -> None:
         self.providers = providers
-        self.tokenizer = self._load_tokenizer(tokenizer_path)
+        self.processor = Processor(processor_path)
 
-        _models = self._load_model(model_path)
+        _models = self._load_model(model_path, quantize)
         self.encoder = _models.pop("encoder")
         self.decoder = _models.pop("decoder")
         self.decoder_with_past = _models.pop("decoder_with_past")
 
-    def _load_tokenizer(self, tokenizer_path):
-        return Pix2StructProcessor.from_pretrained(
-            tokenizer_path, local_files_only=True
-        )
+    def _load_encoder(self, model_path: str, quantize: bool):
+        _path = f"{model_path}/encoder_model.onnx"
+        if quantize:
+            _path = _path.replace(".onnx", "_quantized.onnx")
+        return InferenceSession(_path, providers=self.providers)
 
-    def _preprocess(self, image_paths: list, questions: list):
-        inputs = self.tokenizer(
-            images=[Image.open(_path) for _path in image_paths],
-            text=questions,
-            return_tensors="np",
-        )
-        inputs["attention_mask"] = inputs["attention_mask"].astype(np.int64)
-        return inputs
+    def _load_decoder(self, model_path: str, quantize: bool):
+        _path = f"{model_path}/decoder_model.onnx"
+        if quantize:
+            _path = _path.replace(".onnx", "_quantized.onnx")
+        return InferenceSession(_path, providers=self.providers)
 
-    def _postprocess(self, outputs):
-        return self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
+    def _load_decoder_with_past(self, model_path: str, quantize: bool):
+        _path = f"{model_path}/decoder_with_past_model.onnx"
+        if quantize:
+            _path = _path.replace(".onnx", "_quantized.onnx")
+        return InferenceSession(_path, providers=self.providers)
 
-    def _load_encoder(self, model_path):
-        return InferenceSession(
-            f"{model_path}/encoder_model.onnx", providers=self.providers
-        )
-
-    def _load_decoder(self, model_path):
-        return InferenceSession(
-            f"{model_path}/decoder_model.onnx", providers=self.providers
-        )
-
-    def _load_decoder_with_past(self, model_path):
-        return InferenceSession(
-            f"{model_path}/decoder_with_past_model.onnx", providers=self.providers
-        )
-
-    def _load_model(self, model_path):
+    def _load_model(self, model_path: str, quantize: bool):
         return {
-            "encoder": self._load_encoder(model_path),
-            "decoder": self._load_decoder(model_path),
-            "decoder_with_past": self._load_decoder_with_past(model_path),
+            "encoder": self._load_encoder(model_path, quantize),
+            "decoder": self._load_decoder(model_path, quantize),
+            "decoder_with_past": self._load_decoder_with_past(model_path, quantize),
         }
 
     def _generate(self, inputs):
@@ -251,9 +235,13 @@ class Pix2StructOnnxWithPast:
         return decoded_ids
 
     def run(self, image_paths, questions):
-        inputs = self._preprocess(image_paths, questions)
+        inputs = self.processor(
+            image_paths=image_paths, questions=questions, return_tensors="np"
+        )
+        inputs["attention_mask"] = inputs["attention_mask"].astype(np.int64)
+
         outputs = self._generate(inputs)
-        return self._postprocess(outputs)
+        return self.processor.decode(outputs)
 
 
 available_models = {
@@ -275,6 +263,13 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--quantize",
+        "-q",
+        help="Quantize the model",
+        default=False,
+    )
+
+    parser.add_argument(
         "--images", "-i", help="Path to the images", required=True, nargs="+"
     )
 
@@ -283,7 +278,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     tcm = TimeContextManager()
-    model = tcm("model_init_time").measure(available_models.get(args.model))()
+
+    cls = available_models.get(args.model)
+    model = tcm("model_init_time").measure(cls)(args.model, args.quantize)
     answers = tcm("model_run_time").measure(model.run)(args.images, args.questions)
 
     print("<==============OUTPUT==============>")

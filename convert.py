@@ -38,7 +38,5 @@ def quantize_onnx(onnx_model_path: str):
 
 
 if __name__ == "__main__":
-    _ = convert_to_onnx(with_past=False)
-    model_path = convert_to_onnx(with_past=True)
-
-    quantize_onnx(model_path)
+    quantize_onnx(convert_to_onnx(with_past=False))
+    quantize_onnx(convert_to_onnx(with_past=True))
