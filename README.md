@@ -23,7 +23,7 @@ Following have been tested on Google Colab
 
 - Run the inference
 
-    Availabel Model Type:
+    Available Model Type:
     ```python
     available_models = {
         "HF_MODEL": Pix2StructHF,
