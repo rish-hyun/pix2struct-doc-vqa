@@ -277,7 +277,7 @@ if __name__ == "__main__":
     tcm = TimeContextManager()
 
     cls = available_models.get(args.model)
-    model = tcm("model_init_time").measure(cls)(args.model, args.quantize)
+    model = tcm("model_init_time").measure(cls)(quantize=args.quantize)
     answers = tcm("model_run_time").measure(model.run)(args.images, args.questions)
 
     print("<==============OUTPUT==============>")
