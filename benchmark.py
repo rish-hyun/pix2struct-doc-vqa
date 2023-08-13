@@ -22,8 +22,6 @@ if __name__ == "__main__":
     model_benchmark = {}
     for model_type, cls in available_models.items():
         for quantize in [True, False]:
-            model_type = model_type + "_quantized" if quantize else model_type
-
             tcm = TimeContextManager(verbose=False)
             n = 1  # Number of samples to test
 
@@ -33,10 +31,14 @@ if __name__ == "__main__":
                     images[:n], questions[:n]
                 )
 
-            model_benchmark[model_type] = tcm.manager
+            model_benchmark[
+                model_type + "_quantized" if quantize else model_type
+            ] = tcm.manager
             json.dump(model_benchmark, open("model_benchmarks.json", "w"), indent=4)
 
-            print(f"<==== OUTPUT for Test Batch Size: {n}, Model: {model_type} =====>")
+            print(
+                f"<= OUTPUT for Test Batch Size: {n}, Model: {model_type}, Quantize: {quantize} =>"
+            )
 
             for k in range(n):
                 print("Question:", questions[k])

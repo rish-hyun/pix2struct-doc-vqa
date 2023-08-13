@@ -26,8 +26,8 @@ Best Time taken by each model on Testing sample [Ran on Google Colab CPU for 5 t
 | ------------------------------------------------- | ------------------------- | ------------------- |
 | pix2struct-docvqa-base                            | `2.84`                    | `29.70`             |
 | pix2struct-docvqa-base_onnx                       | `2.14`                    | `28.37`             |
-| pix2struct-docvqa-base_onnx (Quantized)           | `NaN`                     | `NaN`               |
-| pix2struct-docvqa-base_onnx_with_past             | `3.79`                    | `17.5`              |
-| pix2struct-docvqa-base_onnx_with_past (Quantized) | `NaN`                     | `NaN`               |
+| pix2struct-docvqa-base_onnx (Quantized)           | `1.05`                    | `21.62`             |
+| pix2struct-docvqa-base_onnx_with_past             | `3.79`                    | `17.50`             |
+| pix2struct-docvqa-base_onnx_with_past (Quantized) | `2.41`                    | `15.08`             |
 
 ---
