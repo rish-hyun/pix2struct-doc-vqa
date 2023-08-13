@@ -31,3 +31,7 @@ Following have been tested on Google Colab
         --q <QUESTION> \
         --quantize [True/False (Default: False)]
     ```
+
+## Results
+
+See benchmarking results [results.md](./results.md)
