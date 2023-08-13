@@ -21,21 +21,25 @@ if __name__ == "__main__":
 
     model_benchmark = {}
     for model_type, cls in available_models.items():
-        tcm = TimeContextManager(verbose=False)
-        n = 1  # Number of samples to test
+        for quantize in [True, False]:
+            model_type = model_type + "_quantized" if quantize else model_type
 
-        for _ in range(5):
-            model = tcm("model_init_time").measure(cls)()
-            predicted_answers = tcm("model_run_time").measure(model.run)(images[:n], questions[:n]
-            )
+            tcm = TimeContextManager(verbose=False)
+            n = 1  # Number of samples to test
 
-        model_benchmark[model_type] = tcm.manager
-        json.dump(model_benchmark, open("model_benchmarks.json", "w"), indent=4)
+            for _ in range(5):
+                model = tcm("model_init_time").measure(cls)(quantize=quantize)
+                predicted_answers = tcm("model_run_time").measure(model.run)(
+                    images[:n], questions[:n]
+                )
 
-        print(f"<==== OUTPUT for Test Batch Size: {n}, Model: {model_type} =====>")
+            model_benchmark[model_type] = tcm.manager
+            json.dump(model_benchmark, open("model_benchmarks.json", "w"), indent=4)
 
-        for k in range(n):
-            print("Question:", questions[k])
-            print("Predicted answer:", predicted_answers[k])
-            print("Ground truth:", answers[k])
-            print()
+            print(f"<==== OUTPUT for Test Batch Size: {n}, Model: {model_type} =====>")
+
+            for k in range(n):
+                print("Question:", questions[k])
+                print("Predicted answer:", predicted_answers[k])
+                print("Ground truth:", answers[k])
+                print()
