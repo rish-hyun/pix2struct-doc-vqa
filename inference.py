@@ -40,9 +40,9 @@ class Pix2StructHF:
     def __init__(
         self,
         model_path: str = os.path.join(MODELS_DIR, MODEL_NAME),
-        processor_path: str = os.path.join(MODELS_DIR, MODEL_NAME),
+        quantize: bool = False,
     ) -> None:
-        self.processor = Processor(processor_path)
+        self.processor = Processor(model_path)
         self.model = self._load_model(model_path)
 
     def _load_model(self, model_path):
@@ -66,12 +66,11 @@ class Pix2StructOnnxWithoutPast:
     def __init__(
         self,
         model_path=os.path.join(MODELS_DIR, MODEL_NAME) + "_onnx",
-        processor_path=os.path.join(MODELS_DIR, MODEL_NAME) + "_onnx",
         quantize: bool = False,
         providers=["CPUExecutionProvider"],
     ) -> None:
         self.providers = providers
-        self.processor = Processor(processor_path)
+        self.processor = Processor(model_path)
 
         _models = self._load_model(model_path, quantize)
         self.encoder = _models.pop("encoder")
@@ -141,12 +140,11 @@ class Pix2StructOnnxWithPast:
     def __init__(
         self,
         model_path=os.path.join(MODELS_DIR, MODEL_NAME) + "_onnx_with_past",
-        processor_path=os.path.join(MODELS_DIR, MODEL_NAME) + "_onnx_with_past",
         quantize: bool = False,
         providers=["CPUExecutionProvider"],
     ) -> None:
         self.providers = providers
-        self.processor = Processor(processor_path)
+        self.processor = Processor(model_path)
 
         _models = self._load_model(model_path, quantize)
         self.encoder = _models.pop("encoder")
